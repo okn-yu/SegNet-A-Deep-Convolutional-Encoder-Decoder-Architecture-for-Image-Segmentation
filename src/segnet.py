@@ -36,24 +36,24 @@ import torch.nn as nn
 # )
 
 class SegNet(nn.modules):
-    def __init__(self):
+    def __init__(self, in_chan_num, out_chan_num):
         super().__init__()
-        self.encoder_network = self.encoders()
-        self.decoder_netwrok = self.decoders()
+        self.encoder_network = self.encoders(in_chan_num)
+        self.decoder_netwrok = self.decoders(out_chan_num)
         self.pixel_wise_classifier = nn.Softmax()
 
-    def encoders(self):
+    def encoders(self, in_chan_num):
 
         nn.Sequential(
             # 1st
-            nn.Conv2d(3, 64, kernel_size=3, stride=1, padding=1),
+            nn.Conv2d(in_chan_num, 64, kernel_size=3, stride=1, padding=1),
             nn.BatchNorm2d(64),
             nn.ReLU(),
             # 2nd
             nn.Conv2d(64, 64, kernel_size=3, stride=1, padding=1),
             nn.BatchNorm2d(64),
             nn.ReLU(),
-            nn.MaxPool2d(kernel_size=2, stride=2),
+            nn.MaxPool2d(kernel_size=2, stride=2, return_indices=True),
 
             # 3rd
             nn.Conv2d(64, 128, kernel_size=3, stride=1, padding=1),
@@ -63,7 +63,7 @@ class SegNet(nn.modules):
             nn.Conv2d(128, 128, kernel_size=3, stride=1, padding=1),
             nn.BatchNorm2d(128),
             nn.ReLU(),
-            nn.MaxPool2d(kernel_size=2, stride=2),
+            nn.MaxPool2d(kernel_size=2, stride=2, return_indices=True),
 
             # 5th
             nn.Conv2d(128, 256, kernel_size=3, stride=1, padding=1),
@@ -77,7 +77,7 @@ class SegNet(nn.modules):
             nn.Conv2d(256, 256, kernel_size=3, stride=1, padding=1),
             nn.BatchNorm2d(256),
             nn.ReLU(),
-            nn.MaxPool2d(kernel_size=2, stride=2),
+            nn.MaxPool2d(kernel_size=2, stride=2, return_indices=True),
 
             # 8th
             nn.Conv2d(256, 512, kernel_size=3, stride=1, padding=1),
@@ -92,7 +92,7 @@ class SegNet(nn.modules):
             nn.BatchNorm2d(256),
             nn.ReLU(),
 
-            nn.MaxPool2d(kernel_size=2, stride=2),
+            nn.MaxPool2d(kernel_size=2, stride=2, return_indices=True),
 
             # 11th
             nn.Conv2d(512, 512, kernel_size=3, stride=1, padding=1),
@@ -107,11 +107,12 @@ class SegNet(nn.modules):
             nn.BatchNorm2d(512),
             nn.ReLU(),
 
-            nn.MaxPool2d(kernel_size=2, stride=2),
+            nn.MaxPool2d(kernel_size=2, stride=2, return_indices=True)
         )
 
-    def decoders(self):
+    def decoders(self, out_chan_num):
         pass
+
 
     def pixel_wise_classifier(self):
         pass
