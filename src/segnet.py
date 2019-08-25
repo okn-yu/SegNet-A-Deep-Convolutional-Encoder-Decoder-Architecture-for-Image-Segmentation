@@ -37,85 +37,84 @@ import torch.nn as nn
 
 class SegNet(nn.modules):
     def __init__(self, in_chan_num, out_chan_num):
-        super().__init__()
+        super().__init__(SegNet, self)
         self.encoder_network = self.encoders(in_chan_num)
         self.decoder_netwrok = self.decoders(out_chan_num)
         self.pixel_wise_classifier = nn.Softmax()
 
+    def forward(self):
+        pass
+
     def encoders(self, in_chan_num):
-
-        nn.Sequential(
-            # 1st
-            nn.Conv2d(in_chan_num, 64, kernel_size=3, stride=1, padding=1),
-            nn.BatchNorm2d(64),
-            nn.ReLU(),
-            # 2nd
-            nn.Conv2d(64, 64, kernel_size=3, stride=1, padding=1),
-            nn.BatchNorm2d(64),
-            nn.ReLU(),
-            nn.MaxPool2d(kernel_size=2, stride=2, return_indices=True),
-
-            # 3rd
-            nn.Conv2d(64, 128, kernel_size=3, stride=1, padding=1),
-            nn.BatchNorm2d(128),
-            nn.ReLU(),
-            # 4th
-            nn.Conv2d(128, 128, kernel_size=3, stride=1, padding=1),
-            nn.BatchNorm2d(128),
-            nn.ReLU(),
-            nn.MaxPool2d(kernel_size=2, stride=2, return_indices=True),
-
-            # 5th
-            nn.Conv2d(128, 256, kernel_size=3, stride=1, padding=1),
-            nn.BatchNorm2d(256),
-            nn.ReLU(),
-            # 6th
-            nn.Conv2d(256, 256, kernel_size=3, stride=1, padding=1),
-            nn.BatchNorm2d(256),
-            nn.ReLU(),
-            # 7th
-            nn.Conv2d(256, 256, kernel_size=3, stride=1, padding=1),
-            nn.BatchNorm2d(256),
-            nn.ReLU(),
-            nn.MaxPool2d(kernel_size=2, stride=2, return_indices=True),
-
-            # 8th
-            nn.Conv2d(256, 512, kernel_size=3, stride=1, padding=1),
-            nn.BatchNorm2d(256),
-            nn.ReLU(),
-            # 9th
-            nn.Conv2d(512, 512, kernel_size=3, stride=1, padding=1),
-            nn.BatchNorm2d(512),
-            nn.ReLU(),
-            # 10th
-            nn.Conv2d(512, 512, kernel_size=3, stride=1, padding=1),
-            nn.BatchNorm2d(256),
-            nn.ReLU(),
-
-            nn.MaxPool2d(kernel_size=2, stride=2, return_indices=True),
-
-            # 11th
-            nn.Conv2d(512, 512, kernel_size=3, stride=1, padding=1),
-            nn.BatchNorm2d(512),
-            nn.ReLU(),
-            # 12th
-            nn.Conv2d(512, 512, kernel_size=3, stride=1, padding=1),
-            nn.BatchNorm2d(512),
-            nn.ReLU(),
-            # 13th
-            nn.Conv2d(512, 512, kernel_size=3, stride=1, padding=1),
-            nn.BatchNorm2d(512),
-            nn.ReLU(),
-
-            nn.MaxPool2d(kernel_size=2, stride=2, return_indices=True)
-        )
+        pass
 
     def decoders(self, out_chan_num):
         pass
-
 
     def pixel_wise_classifier(self):
         pass
 
 
+class Encorder2Convs(nn.modules):
+    def __init__(self, in_chan_num, out_chan_num):
+        super().__init__(Encorder2Convs, self)
+        self.conv1 = nn.Conv2d(in_chan_num, out_chan_num, kernel_size=3, stride=1, padding=1)
+        self.batch_norm1 = nn.BatchNorm2d(out_chan_num)
+        self.conv2 = nn.Conv2d(out_chan_num, out_chan_num, kernel_size=3, stride=1, padding=1)
+        self.batch_norum2 = nn.BatchNorm2d(out_chan_num)
+        self.pool = nn.MaxPool2d(kernel_size=2, stride=2, return_indices=True)
+
+    def forward(self, input):
+        output = self.conv1(input)
+        output = self.batch_norm1(output)
+        output = nn.ReLU(output)
+        output = self.conv2(output)
+        output = self.batch_norum2(output)
+        output = nn.ReLU(output)
+        output, indices = self.pool(output)
+
+        return output, indices
+
+
+class Encorder3Convs(nn.modules):
+    def __init__(self, in_chan_num, out_chan_num):
+        super().__init__(Encorder3Convs, self)
+        self.conv1 = nn.Conv2d(in_chan_num, out_chan_num, kernel_size=3, stride=1, padding=1)
+        self.batch_norm1 = nn.BatchNorm2d(out_chan_num)
+        self.conv2 = nn.Conv2d(out_chan_num, out_chan_num, kernel_size=3, stride=1, padding=1)
+        self.batch_norum2 = nn.BatchNorm2d(out_chan_num)
+        self.conv3 = nn.Conv2d(out_chan_num, out_chan_num, kernel_size=3, stride=1, padding=1)
+        self.batch_norum3 = nn.BatchNorm2d(out_chan_num)
+        self.pool = nn.MaxPool2d(kernel_size=2, stride=2, return_indices=True)
+
+    def forward(self, input):
+        output = self.conv1(input)
+        output = self.batch_norm1(output)
+        output = nn.ReLU(output)
+        output = self.conv2(output)
+        output = self.batch_norum2(output)
+        output = nn.ReLU(output)
+        output = self.conv3(output)
+        output = self.batch_norm3(output)
+        output, indices = self.pool(output)
+
+        return output, indices
+
+class Decorder2Convs(nn.modules):
+    def __init__(self, in_chan_num, out_chan_num):
+        self.unpool = nn.MaxUnpool2d(kernel_size=2, stride=2)
+        self.conv1 = nn.Conv2d(in_chan_num, out_chan_num, kernel_size=3, stride=1, padding=1)
+        self.batch_norm1 = nn.BatchNorm2d(out_chan_num)
+        self.conv2 = nn.Conv2d(out_chan_num, out_chan_num, kernel_size=3, stride=1, padding=1)
+        self.batch_norum2 = nn.BatchNorm2d(out_chan_num)
+
+    def forward(self, input, indices):
+        output = self.unpool(input, indices)
+        output = self.conv1(output)
+        output = self.batch_norm1(output)
+        output = nn.ReLU(output)
+
+
+class Decorder3Convs(nn.modules):
+    pass
 
