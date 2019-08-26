@@ -35,9 +35,9 @@ import torch.nn as nn
 #   (30): MaxPool2d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False)
 # )
 
-class SegNet(nn.modules):
+class SegNet(nn.Module):
     def __init__(self, in_chan_num, out_chan_num):
-        super().__init__(SegNet, self)
+        super(SegNet, self).__init__()
         self.encoder_network = self.encoders(in_chan_num)
         self.decoder_netwrok = self.decoders(out_chan_num)
         self.pixel_wise_classifier = nn.Softmax()
@@ -55,47 +55,33 @@ class SegNet(nn.modules):
         pass
 
 
-class Encorder2Convs(nn.modules):
+class Encorder2Convs(nn.Module):
     def __init__(self, in_chan_num, out_chan_num):
-        super().__init__(Encorder2Convs, self)
-        self.conv1 = nn.Conv2d(in_chan_num, out_chan_num, kernel_size=3, stride=1, padding=1)
-        self.batch_norm1 = nn.BatchNorm2d(out_chan_num)
-        self.conv2 = nn.Conv2d(out_chan_num, out_chan_num, kernel_size=3, stride=1, padding=1)
-        self.batch_norum2 = nn.BatchNorm2d(out_chan_num)
+        super(Encorder2Convs, self).__init__()
+        self.conv_batch_relu1 = ConvBatchReLU(in_chan_num, out_chan_num)
+        self.conv_batch_relu2 = ConvBatchReLU(out_chan_num, out_chan_num)
         self.pool = nn.MaxPool2d(kernel_size=2, stride=2, return_indices=True)
 
     def forward(self, input):
-        output = self.conv1(input)
-        output = self.batch_norm1(output)
-        output = nn.ReLU(output)
-        output = self.conv2(output)
-        output = self.batch_norum2(output)
-        output = nn.ReLU(output)
+        output = self.conv_batch_relu1(input)
+        output = self.conv_batch_relu2(output)
         output, indices = self.pool(output)
 
         return output, indices
 
 
-class Encorder3Convs(nn.modules):
+class Encorder3Convs(nn.Module):
     def __init__(self, in_chan_num, out_chan_num):
-        super().__init__(Encorder3Convs, self)
-        self.conv1 = nn.Conv2d(in_chan_num, out_chan_num, kernel_size=3, stride=1, padding=1)
-        self.batch_norm1 = nn.BatchNorm2d(out_chan_num)
-        self.conv2 = nn.Conv2d(out_chan_num, out_chan_num, kernel_size=3, stride=1, padding=1)
-        self.batch_norum2 = nn.BatchNorm2d(out_chan_num)
-        self.conv3 = nn.Conv2d(out_chan_num, out_chan_num, kernel_size=3, stride=1, padding=1)
-        self.batch_norum3 = nn.BatchNorm2d(out_chan_num)
+        super(Encorder3Convs, self).__init__()
+        self.conv_batch_relu1 = ConvBatchReLU(in_chan_num, out_chan_num)
+        self.conv_batch_relu2 = ConvBatchReLU(out_chan_num, out_chan_num)
+        self.conv_batch_relu3 = ConvBatchReLU(out_chan_num, out_chan_num)
         self.pool = nn.MaxPool2d(kernel_size=2, stride=2, return_indices=True)
 
     def forward(self, input):
-        output = self.conv1(input)
-        output = self.batch_norm1(output)
-        output = nn.ReLU(output)
-        output = self.conv2(output)
-        output = self.batch_norum2(output)
-        output = nn.ReLU(output)
-        output = self.conv3(output)
-        output = self.batch_norm3(output)
+        output = self.conv_batch_relu1(input)
+        output = self.conv_batch_relu2(output)
+        output = self.conv_batch_relu3(output)
         output, indices = self.pool(output)
 
         return output, indices
@@ -103,18 +89,43 @@ class Encorder3Convs(nn.modules):
 class Decorder2Convs(nn.modules):
     def __init__(self, in_chan_num, out_chan_num):
         self.unpool = nn.MaxUnpool2d(kernel_size=2, stride=2)
-        self.conv1 = nn.Conv2d(in_chan_num, out_chan_num, kernel_size=3, stride=1, padding=1)
-        self.batch_norm1 = nn.BatchNorm2d(out_chan_num)
-        self.conv2 = nn.Conv2d(out_chan_num, out_chan_num, kernel_size=3, stride=1, padding=1)
-        self.batch_norum2 = nn.BatchNorm2d(out_chan_num)
+        self.conv_batch_relu1 = ConvBatchReLU(in_chan_num, out_chan_num)
+        self.conv_batch_relu2 = ConvBatchReLU(out_chan_num, out_chan_num)
 
     def forward(self, input, indices):
         output = self.unpool(input, indices)
-        output = self.conv1(output)
-        output = self.batch_norm1(output)
+        output = self.conv_batch_relu1(output)
+        output = self.conv_batch_relu2(output)
         output = nn.ReLU(output)
 
+        return output
 
 class Decorder3Convs(nn.modules):
-    pass
+    def __init__(self, in_chan_num, out_chan_num):
+        self.unpool = nn.MaxUnpool2d(kernel_size=2, stride=2)
+        self.conv_batch_relu1 = ConvBatchReLU(in_chan_num, out_chan_num)
+        self.conv_batch_relu2 = ConvBatchReLU(out_chan_num, out_chan_num)
+        self.conv_batch_relu3 = ConvBatchReLU(out_chan_num, out_chan_num)
+
+    def forward(self, input, indices):
+        output = self.unpool(input, indices)
+        output = self.conv_batch_relu1(output)
+        output = self.conv_batch_relu2(output)
+        output = self.conv_batch_relu3(output)
+        output = nn.ReLU(output)
+
+        return output
+
+class ConvBatchReLU(nn.Module):
+    def __init__(self, in_chan_num, out_chan_num):
+        super(ConvBatchReLU, self).__init__()
+        self.conv = nn.Conv2d(in_chan_num, out_chan_num, kernel_size=3, stride=1, padding=1)
+        self.batch_norm = nn.BatchNorm2d(out_chan_num)
+
+    def forward(self, input):
+        output = self.conv(input)
+        output = self.batch_norm(output)
+        output = nn.ReLU(output)
+
+        return output
 
