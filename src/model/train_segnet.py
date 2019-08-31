@@ -31,9 +31,11 @@ def train():
 
         model.train()
         for i, (images, labels) in enumerate(train_loader):
+            print("start training...%s" % i)
             images, labels = images.to(device), labels.to(device)
             optimizer.zero_grad()
-            outputs = model(images)
+            outputs = model(images.float())
+            print(outputs)
             loss = criterion(outputs, labels)
             train_loss += loss.item()
             train_acc += (outputs.max(1)[1] == labels).sum().item()
@@ -84,3 +86,5 @@ def train():
     # torch.save(model.state_dict(), './trained_model')
 
     return model
+
+train()

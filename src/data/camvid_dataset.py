@@ -1,4 +1,3 @@
-from torch.utils.data import DataLoader
 from torch.utils.data import Dataset as BaseDataset
 
 import os
@@ -12,14 +11,15 @@ import matplotlib.pyplot as plt
 
 class CamVidDataSet(BaseDataset):
 
-    def __init__(self, train, classes):
+    def __init__(self, train, classes=None):
 
         self.CLASSES = ['sky', 'building', 'pole', 'road', 'pavement',
                         'tree', 'signsymbol', 'fence', 'car',
                         'pedestrian', 'bicyclist', 'unlabelled']
 
-        root_dir = "./data/CamVid/"
-        #classes = self.CLASSES
+        print(os.getcwd())
+        root_dir = "./src/data/CamVid/"
+        classes = self.CLASSES
         self.ids = os.listdir(root_dir)
 
         if train:
@@ -45,12 +45,17 @@ class CamVidDataSet(BaseDataset):
 
         mask = cv2.imread(self.masks_fps[i], 0)
         # print(mask.shape)
+        # print(mask.shape) -> (360, 480)
 
         # extract certain classes from mask (e.g. cars)
         masks = [(mask == v) for v in self.class_values]
+        # print(type(masks)) -> <class 'list'>
+        # print(masks)
         mask = np.stack(masks, axis=-1).astype('float')
+        # print(mask)
+        # print(mask.shape) #-> (360, 480, 12)
 
-        return image, mask
+        return image.transpose(2, 1, 0), mask.transpose(2, 1, 0)
 
     def __len__(self):
         return len(self.ids)
@@ -69,16 +74,16 @@ def visualize(**images):
     plt.show()
 
 
-dataset = CamVidDataSet(train=True, classes=['sky', 'car'])
-
-image, mask = dataset[1]
-
-# print(image.shape) -> (360, 480, 3)
-print(mask.shape)# -> (360, 480, 1)
-# print(type(image)) ->  <class 'numpy.ndarray'>
-# print(type(mask)) ->  <class 'numpy.ndarray'>
-
-visualize(
-    image=image,
-    cars_mask=mask.squeeze(),
-)
+# dataset = CamVidDataSet(train=True)
+#
+# image, mask = dataset[1]
+#
+# # print(image.shape) -> (360, 480, 3)
+# # print(mask.shape)# -> (360, 480, 1)
+# # print(type(image)) ->  <class 'numpy.ndarray'>
+# # print(type(mask)) ->  <class 'numpy.ndarray'>
+#
+# visualize(
+#     image=image,
+#     cars_mask=mask.squeeze(),
+# )

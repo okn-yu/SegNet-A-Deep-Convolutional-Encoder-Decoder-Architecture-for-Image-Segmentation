@@ -1,5 +1,5 @@
 import torch.nn as nn
-
+import torchvision.models as models
 
 class SegNet(nn.Module):
     def __init__(self, in_chan_num, out_chan_num):
@@ -10,11 +10,11 @@ class SegNet(nn.Module):
         self.encoder4 = Encorder3Convs(256, 512)
         self.encoder5 = Encorder3Convs(512, 512)
 
-        self.decoder1 = Encorder2Convs(512, 512)
-        self.decoder2 = Encorder2Convs(512, 256)
-        self.decoder3 = Encorder3Convs(256, 128)
-        self.decoder4 = Encorder3Convs(128, 64)
-        self.decoder5 = Encorder3Convs(64, out_chan_num)
+        self.decoder1 = Decorder3Convs(512, 512)
+        self.decoder2 = Decorder3Convs(512, 256)
+        self.decoder3 = Decorder3Convs(256, 128)
+        self.decoder4 = Decorder2Convs(128, 64)
+        self.decoder5 = Decorder2Convs(64, out_chan_num)
 
     def forward(self, input):
         output, indices1 = self.encoder1(input)
@@ -23,14 +23,16 @@ class SegNet(nn.Module):
         output, indices4 = self.encoder4(output)
         output, indices5 = self.encoder5(output)
 
-        output = self.decoder1(output, indices1)
-        output = self.decoder2(output, indices2)
+        output = self.decoder1(output, indices5)
+        output = self.decoder2(output, indices4)
         output = self.decoder3(output, indices3)
-        output = self.decoder4(output, indices4)
-        output = self.decoder5(output, indices5)
+        output = self.decoder4(output, indices2)
+        output = self.decoder5(output, indices1)
 
         return output
 
+    def set_weight(self):
+        vgg16 = models.vgg16(pretrained=True)
 
 class Encorder2Convs(nn.Module):
     def __init__(self, in_chan_num, out_chan_num):
@@ -64,8 +66,9 @@ class Encorder3Convs(nn.Module):
         return output, indices
 
 
-class Decorder2Convs(nn.modules):
+class Decorder2Convs(nn.Module):
     def __init__(self, in_chan_num, out_chan_num):
+        super(Decorder2Convs, self).__init__()
         self.unpool = nn.MaxUnpool2d(kernel_size=2, stride=2)
         self.conv_batch_relu1 = ConvBatchReLU(in_chan_num, out_chan_num)
         self.conv_batch_relu2 = ConvBatchReLU(out_chan_num, out_chan_num)
@@ -79,8 +82,9 @@ class Decorder2Convs(nn.modules):
         return output
 
 
-class Decorder3Convs(nn.modules):
+class Decorder3Convs(nn.Module):
     def __init__(self, in_chan_num, out_chan_num):
+        super(Decorder3Convs, self).__init__()
         self.unpool = nn.MaxUnpool2d(kernel_size=2, stride=2)
         self.conv_batch_relu1 = ConvBatchReLU(in_chan_num, out_chan_num)
         self.conv_batch_relu2 = ConvBatchReLU(out_chan_num, out_chan_num)
@@ -101,11 +105,12 @@ class ConvBatchReLU(nn.Module):
         super(ConvBatchReLU, self).__init__()
         self.conv = nn.Conv2d(in_chan_num, out_chan_num, kernel_size=3, stride=1, padding=1)
         self.batch_norm = nn.BatchNorm2d(out_chan_num)
+        self.relu = nn.ReLU()
 
     def forward(self, input):
         output = self.conv(input)
         output = self.batch_norm(output)
-        output = nn.ReLU(output)
+        output = self.relu(output)
 
         return output
 
