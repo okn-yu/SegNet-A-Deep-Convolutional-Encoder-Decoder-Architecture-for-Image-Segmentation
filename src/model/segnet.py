@@ -1,6 +1,7 @@
 import torch.nn as nn
 import torchvision.models as models
 
+
 class SegNet(nn.Module):
     def __init__(self, in_chan_num, out_chan_num):
         super(SegNet, self).__init__()
@@ -15,6 +16,10 @@ class SegNet(nn.Module):
         self.decoder3 = Decorder3Convs(256, 128)
         self.decoder4 = Decorder2Convs(128, 64)
         self.decoder5 = Decorder2Convs(64, out_chan_num)
+
+        self.encoder_list = [self.encoder1, self.encoder2, self.encoder3, self.encoder4, self.encoder5]
+
+        self.set_weight()
 
     def forward(self, input):
         output, indices1, unpooled_shape1 = self.encoder1(input)
@@ -33,6 +38,28 @@ class SegNet(nn.Module):
 
     def set_weight(self):
         vgg16 = models.vgg16(pretrained=True)
+        self.vgg16_conv2d_layers = [layer for layer in vgg16.features if isinstance(layer, nn.Conv2d)]
+
+        for encorder in self.encoder_list:
+            if isinstance(encorder, Encorder2Convs):
+                self._set_weight_encorder2convs(encorder)
+            if isinstance(encorder, Encorder3Convs):
+                self._set_weight_encorder3convs(encorder)
+
+        assert (len(self.vgg16_conv2d_layers)) == 0
+
+    def _set_weight_encorder2convs(self, encorder):
+        self.__set_weight(encorder.conv_batch_relu1.conv)
+        self.__set_weight(encorder.conv_batch_relu2.conv)
+
+    def _set_weight_encorder3convs(self, encorder):
+        self.__set_weight(encorder.conv_batch_relu1.conv)
+        self.__set_weight(encorder.conv_batch_relu2.conv)
+        self.__set_weight(encorder.conv_batch_relu3.conv)
+
+    def __set_weight(self, conv_layer):
+        conv_layer.weight.data = self.vgg16_conv2d_layers.pop(0).weight.data
+
 
 class Encorder2Convs(nn.Module):
     def __init__(self, in_chan_num, out_chan_num):

@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 # Reference:
 # https://github.com/alexgkendall/SegNet-Tutorial
 
-class CamVidDataSet(BaseDataset):
+class CagitmVidDataSet(BaseDataset):
 
     def __init__(self, train, classes=None):
 
@@ -17,7 +17,7 @@ class CamVidDataSet(BaseDataset):
                         'tree', 'signsymbol', 'fence', 'car',
                         'pedestrian', 'bicyclist', 'unlabelled']
 
-        print(os.getcwd())
+        # print(os.getcwd())
         root_dir = "./src/data/CamVid/"
         #root_dir = "./CamVid"
         classes = self.CLASSES
