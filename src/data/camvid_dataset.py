@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 # Reference:
 # https://github.com/alexgkendall/SegNet-Tutorial
 
-class CagitmVidDataSet(BaseDataset):
+class CamVidDataSet(BaseDataset):
 
     def __init__(self, train, classes=None):
 
