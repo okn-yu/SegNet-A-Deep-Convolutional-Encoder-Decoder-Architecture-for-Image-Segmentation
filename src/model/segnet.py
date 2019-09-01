@@ -17,17 +17,17 @@ class SegNet(nn.Module):
         self.decoder5 = Decorder2Convs(64, out_chan_num)
 
     def forward(self, input):
-        output, indices1 = self.encoder1(input)
-        output, indices2 = self.encoder2(output)
-        output, indices3 = self.encoder3(output)
-        output, indices4 = self.encoder4(output)
-        output, indices5 = self.encoder5(output)
+        output, indices1, unpooled_shape1 = self.encoder1(input)
+        output, indices2, unpooled_shape2 = self.encoder2(output)
+        output, indices3, unpooled_shape3 = self.encoder3(output)
+        output, indices4, unpooled_shape4 = self.encoder4(output)
+        output, indices5, unpooled_shape5 = self.encoder5(output)
 
-        output = self.decoder1(output, indices5)
-        output = self.decoder2(output, indices4)
-        output = self.decoder3(output, indices3)
-        output = self.decoder4(output, indices2)
-        output = self.decoder5(output, indices1)
+        output = self.decoder1(output, indices5, unpooled_shape5)
+        output = self.decoder2(output, indices4, unpooled_shape4)
+        output = self.decoder3(output, indices3, unpooled_shape3)
+        output = self.decoder4(output, indices2, unpooled_shape2)
+        output = self.decoder5(output, indices1, unpooled_shape1)
 
         return output
 
@@ -44,9 +44,10 @@ class Encorder2Convs(nn.Module):
     def forward(self, input):
         output = self.conv_batch_relu1(input)
         output = self.conv_batch_relu2(output)
+        unpooled_shape = output.size()
         output, indices = self.pool(output)
 
-        return output, indices
+        return output, indices, unpooled_shape
 
 
 class Encorder3Convs(nn.Module):
@@ -61,9 +62,10 @@ class Encorder3Convs(nn.Module):
         output = self.conv_batch_relu1(input)
         output = self.conv_batch_relu2(output)
         output = self.conv_batch_relu3(output)
+        unpooled_shape = output.size()
         output, indices = self.pool(output)
 
-        return output, indices
+        return output, indices, unpooled_shape
 
 
 class Decorder2Convs(nn.Module):
@@ -73,11 +75,10 @@ class Decorder2Convs(nn.Module):
         self.conv_batch_relu1 = ConvBatchReLU(in_chan_num, out_chan_num)
         self.conv_batch_relu2 = ConvBatchReLU(out_chan_num, out_chan_num)
 
-    def forward(self, input, indices):
-        output = self.unpool(input, indices)
+    def forward(self, input, indices, output_shape):
+        output = self.unpool(input, indices, output_shape)
         output = self.conv_batch_relu1(output)
         output = self.conv_batch_relu2(output)
-        output = nn.ReLU(output)
 
         return output
 
@@ -90,12 +91,11 @@ class Decorder3Convs(nn.Module):
         self.conv_batch_relu2 = ConvBatchReLU(out_chan_num, out_chan_num)
         self.conv_batch_relu3 = ConvBatchReLU(out_chan_num, out_chan_num)
 
-    def forward(self, input, indices):
-        output = self.unpool(input, indices)
+    def forward(self, input, indices, output_shape):
+        output = self.unpool(input, indices, output_shape)
         output = self.conv_batch_relu1(output)
         output = self.conv_batch_relu2(output)
         output = self.conv_batch_relu3(output)
-        output = nn.ReLU(output)
 
         return output
 

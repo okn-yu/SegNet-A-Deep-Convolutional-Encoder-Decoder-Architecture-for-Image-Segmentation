@@ -19,8 +19,9 @@ class CamVidDataSet(BaseDataset):
 
         print(os.getcwd())
         root_dir = "./src/data/CamVid/"
+        #root_dir = "./CamVid"
         classes = self.CLASSES
-        self.ids = os.listdir(root_dir)
+        #self.ids = os.listdir(root_dir)
 
         if train:
             self.raw_images_dir = os.path.join(root_dir, 'train')
@@ -48,14 +49,16 @@ class CamVidDataSet(BaseDataset):
         # print(mask.shape) -> (360, 480)
 
         # extract certain classes from mask (e.g. cars)
-        masks = [(mask == v) for v in self.class_values]
+        # masks = [(mask == v) for v in self.class_values]
         # print(type(masks)) -> <class 'list'>
         # print(masks)
-        mask = np.stack(masks, axis=-1).astype('float')
+        # mask = np.stack(masks, axis=-1).astype('float')
         # print(mask)
         # print(mask.shape) #-> (360, 480, 12)
 
-        return image.transpose(2, 1, 0), mask.transpose(2, 1, 0)
+        # return image.transpose(2, 1, 0), mask
+        return image.transpose(2, 1, 0).astype('float'), mask.astype('float')
+
 
     def __len__(self):
         return len(self.ids)
