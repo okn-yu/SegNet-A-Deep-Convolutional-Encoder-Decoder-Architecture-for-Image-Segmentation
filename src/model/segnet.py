@@ -1,3 +1,4 @@
+import torch
 import torch.nn as nn
 import torchvision.models as models
 
@@ -19,7 +20,8 @@ class SegNet(nn.Module):
 
         self.encoder_list = [self.encoder1, self.encoder2, self.encoder3, self.encoder4, self.encoder5]
 
-        self.set_weight()
+        if in_chan_num == 3:
+            self.set_weight()
 
     def forward(self, input):
         output, indices1, unpooled_shape1 = self.encoder1(input)
@@ -175,3 +177,9 @@ class ConvBatchReLU(nn.Module):
 #   (29): ReLU(inplace)
 #   (30): MaxPool2d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False)
 # )
+
+if __name__ == '__main__':
+
+    test_tensor = torch.ones(4, 6, 256, 256)
+    segnet = SegNet(6, 3)
+    print(segnet(test_tensor))
